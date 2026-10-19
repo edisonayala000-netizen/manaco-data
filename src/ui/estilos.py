@@ -31,7 +31,9 @@ INFO, INFO_FONDO = "#2563EB", "#DBEAFE"
 MORADO = "#7C3AED"
 
 #: Color de cada categoría de calzado (gráficos y chips).
-COLOR_CATEGORIA: dict[str, str] = {"Deportivo": "#2563EB", "Caucho y cuero": "#7C3AED", "Cuero": PRIMARIO}
+COLOR_CATEGORIA: dict[str, str] = {
+    "Deportivo": "#2563EB", "Caucho y cuero": "#7C3AED", "Cuero": PRIMARIO, "Medias": "#0D9488",
+}
 #: Color de cada estado de cierre.
 COLOR_ESTADO: dict[str, str] = {"Correcto": EXITO, "Faltante": ERROR, "Sobrante": ADVERTENCIA}
 #: Nombre corto de color → hex (para tarjetas KPI y chips).
@@ -45,6 +47,8 @@ ICONOS: dict[str, str] = {
     "inicio": "home", "apertura": "inventory_2", "ventas": "point_of_sale", "cierre": "photo_camera",
     "historial": "history", "tablero": "monitoring", "pronostico": "trending_up", "escenario": "tune",
     "entregables": "assignment", "catalogo": "category", "usuarios": "group",
+    "inventario": "inventory", "clientes": "groups", "recomendaciones": "recommend",
+    "marketing": "campaign", "contabilidad": "account_balance",
 }
 
 CSS = f"""

@@ -59,7 +59,7 @@ with tarjeta("tabla-pronostico", "Detalle del pronóstico", f"Próximos {meses_a
 nota(
     "De dónde salen estos datos",
     "<ul>"
-    "<li><b>[Simulado]</b> El historial mensual no proviene de ventas reales: solo hay 30 días de ventas "
+    "<li><b>[Simulado]</b> El historial mensual no proviene de ventas reales: solo hay 90 días de ventas "
     "registradas en el sistema, insuficientes para estimar estacionalidad o tendencia. Se generó un historial "
     f"de {meses_hist} meses con un nivel base por línea, estacionalidad (inicio de clases y fin de año) y una "
     "presión del mercado informal creciente, igual que el escenario descrito en el caso.</li>"

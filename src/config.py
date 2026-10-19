@@ -39,6 +39,7 @@ CATEGORIAS_SA6: dict[str, int] = {
     "Deportivo": 640411,
     "Caucho y cuero": 640399,
     "Cuero": 640420,
+    "Medias": 611595,
 }
 SA6_A_CATEGORIA: dict[int, str] = {v: k for k, v in CATEGORIAS_SA6.items()}
 
@@ -61,10 +62,64 @@ PERMISOS: dict[str, tuple[str, ...]] = {
     "entregables": (ROL_ADMIN, ROL_GERENCIA),
     "catalogo": (ROL_ADMIN,),
     "usuarios": (ROL_ADMIN,),
+    "inventario": (ROL_ADMIN, ROL_ENCARGADO),
+    "clientes": (ROL_ADMIN, ROL_GERENCIA),
+    "recomendaciones": (ROL_ADMIN, ROL_ENCARGADO, ROL_GERENCIA),
+    "marketing": (ROL_ADMIN, ROL_GERENCIA),
+    "contabilidad": (ROL_ADMIN, ROL_GERENCIA),
 }
 
 ADMIN_USUARIO = "admin"
 ADMIN_CONTRASENA = "manaco2026"
+
+# --- Módulo administrativo y de inventarios -----------------------------------
+ESTADO_OC_BORRADOR = "BORRADOR"
+ESTADO_OC_APROBADA = "APROBADA"
+ESTADO_OC_RECIBIDA = "RECIBIDA"
+ESTADO_OC_CANCELADA = "CANCELADA"
+ESTADOS_OC: tuple[str, ...] = (ESTADO_OC_BORRADOR, ESTADO_OC_APROBADA, ESTADO_OC_RECIBIDA, ESTADO_OC_CANCELADA)
+
+ORIGEN_OC_MANUAL = "MANUAL"
+ORIGEN_OC_ALERTA = "ALERTA_STOCK"
+ORIGENES_OC: tuple[str, ...] = (ORIGEN_OC_MANUAL, ORIGEN_OC_ALERTA)
+
+# --- Módulo de machine learning: segmentación RFM -----------------------------
+SEGMENTO_VIP = "VIP"
+SEGMENTO_FRECUENTE = "Frecuentes"
+SEGMENTO_RIESGO = "En riesgo"
+SEGMENTO_INACTIVO = "Inactivos"
+SEGMENTO_NUEVO = "Nuevos"
+SEGMENTOS_RFM: tuple[str, ...] = (
+    SEGMENTO_VIP, SEGMENTO_FRECUENTE, SEGMENTO_RIESGO, SEGMENTO_INACTIVO, SEGMENTO_NUEVO,
+)
+
+#: Mínimo de ventas históricas por producto para confiar en Apriori/FP-Growth;
+#: por debajo de esto se usa el respaldo por atributos (categoría, color, talla).
+MINIMO_VENTAS_ASOCIACION: int = 20
+SOPORTE_MINIMO_ASOCIACION: float = 0.01
+CONFIANZA_MINIMA_ASOCIACION: float = 0.1
+
+# --- Módulo de marketing digital y promociones --------------------------------
+TIPO_PROMO_PORCENTAJE = "PORCENTAJE"
+TIPO_PROMO_MONTO_FIJO = "MONTO_FIJO"
+TIPO_PROMO_COMBO = "COMBO_ESPECIAL"
+TIPOS_PROMOCION: tuple[str, ...] = (TIPO_PROMO_PORCENTAJE, TIPO_PROMO_MONTO_FIJO, TIPO_PROMO_COMBO)
+
+CANALES_CAMPANA: tuple[str, ...] = ("TikTok", "Instagram", "Facebook", "Google")
+
+# --- Contabilidad: plan de cuentas mínimo usado por las integraciones ---------
+CUENTA_INVENTARIO = "1141"
+CUENTA_CXP_PROVEEDORES = "2111"
+CUENTA_DESCUENTOS_VENTA = "4121"
+CUENTA_CAJA_BANCOS = "1111"
+
+#: (código, nombre, tipo, naturaleza) — se siembra una sola vez en ``contabilidad.sembrar_plan_cuentas``.
+PLAN_CUENTAS_BASE: tuple[tuple[str, str, str, str], ...] = (
+    (CUENTA_CAJA_BANCOS, "Caja y bancos", "ACTIVO", "DEUDORA"),
+    (CUENTA_INVENTARIO, "Inventario de mercaderías", "ACTIVO", "DEUDORA"),
+    (CUENTA_CXP_PROVEEDORES, "Cuentas por pagar proveedores", "PASIVO", "ACREEDORA"),
+    (CUENTA_DESCUENTOS_VENTA, "Descuentos sobre ventas", "INGRESO", "DEUDORA"),
+)
 
 # --- Visión por computadora --------------------------------------------------
 MODELO_YOLO: str = "yolov8s-world.pt"

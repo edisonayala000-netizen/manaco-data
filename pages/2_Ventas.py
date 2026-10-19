@@ -6,7 +6,7 @@ import streamlit as st
 
 from src.auth import proteger_pagina
 from src.db import obtener_sesion
-from src.services import inventario as inv
+from src.services import compras, inventario as inv
 from src.services.inventario import ErrorNegocio
 from src.ui.comunes import (
     avisar_y_recargar, exigir_catalogo, mostrar_aviso_pendiente, selector_fecha, selector_producto,
@@ -71,8 +71,9 @@ with izq, tarjeta("venta", "Nueva venta", icono="point_of_sale"):
                                      icon=":material/add_shopping_cart:"):
                 try:
                     with obtener_sesion() as s:
-                        inv.registrar_venta(s, dia, tienda_id, int(producto["id"]), int(cantidad),
-                                            float(precio), usuario.id)
+                        venta = inv.registrar_venta(s, dia, tienda_id, int(producto["id"]), int(cantidad),
+                                                    float(precio), usuario.id)
+                        compras.sincronizar_stock_tras_venta(s, venta)
                     avisar_y_recargar(f"Venta registrada: {int(cantidad)} par(es) de {producto['codigo']} "
                                       f"por {bs(cantidad * precio)}.")
                 except ErrorNegocio as exc:

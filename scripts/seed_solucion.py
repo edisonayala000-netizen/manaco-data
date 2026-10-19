@@ -1,7 +1,7 @@
 """Carga datos [Simulado] del esquema en estrella que falta: calendario, producción,
 calidad, mercado local y bitácora de ingesta (Manaco_Caso_Solucion_y_Prototipo.md, sec. 2-3).
 
-No hay 24 meses de historia real en el sistema (sólo ``DIAS = 30`` en seed_demo.py), así que
+No hay 24 meses de historia real en el sistema (sólo ``DIAS = 90`` en seed_demo.py), así que
 estas tablas se llenan con datos simulados y etiquetados como tales, igual que el prototipo
 publicado en la sección 4 del documento. Reemplaza el contenido de las 5 tablas.
 Uso: ``python scripts/seed_solucion.py`` (requiere haber corrido antes seed_demo.py).

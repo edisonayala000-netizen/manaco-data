@@ -1,11 +1,16 @@
 # Manaco Data
 
-Plataforma web **local** para la empresa boliviana de calzado **Manaco**. Resuelve dos problemas del caso de estudio:
+Plataforma web **local** para la empresa boliviana de calzado **Manaco**. Resuelve estos problemas del caso de estudio:
 
 1. **Inventario sin control diario.** Registra la apertura, las ventas y el cierre de stock de pares de zapatos en cada tienda, cuenta el stock con una **foto** (IA YOLO-World) y **alerta** cuando lo contado no coincide con lo esperado.
-2. **Datos sin integrar.** Un **tablero de mercado** analiza la base de comercio exterior de calzado (Excel) junto con las ventas internas registradas en el sistema.
+2. **Compras y reposición sin punto de reorden.** Un stock administrativo paralelo (`Inventario`) dispara alertas y, si hay proveedor predeterminado, una orden de compra automática; al recibirla se prorratea el flete/arancel en el costo (*landed cost*) y se registra el asiento contable.
+3. **Datos sin integrar.** Un **tablero de mercado** analiza la base de comercio exterior de calzado (Excel) junto con las ventas internas registradas en el sistema.
+4. **Venta cruzada y segmentación manuales.** Un motor de recomendación (reglas de asociación FP-Growth/Apriori con respaldo por atributos) sugiere productos complementarios, y la segmentación RFM clasifica clientes en VIP, Frecuentes, En riesgo, Inactivos o Nuevos.
+5. **Promociones y campañas sin trazabilidad.** Reglas de descuento (porcentaje, monto fijo, combo) se evalúan sobre el carrito; las campañas con cupón y UTM registran conversiones y su ROAS, con el descuento reflejado en el libro diario.
 
-Tecnología: Python 3.11 · Streamlit · SQLite + SQLAlchemy 2 · pandas · Plotly · Ultralytics YOLO-World · bcrypt · pytest.
+Un **libro diario de partida doble** (`src/services/contabilidad.py`) registra automáticamente las compras recibidas y los descuentos por promoción, y expone un balance de comprobación.
+
+Tecnología: Python 3.11 · Streamlit · SQLite + SQLAlchemy 2 · pandas · Plotly · Ultralytics YOLO-World · mlxtend (FP-Growth/Apriori) · bcrypt · pytest.
 
 ---
 
@@ -19,6 +24,7 @@ conda activate manaco
 python scripts/init_db.py      # crea las tablas, carga el Excel y el usuario admin
 python scripts/seed_demo.py    # (opcional) 3 tiendas, 12 productos y 30 días de operación
 python scripts/seed_solucion.py  # (opcional) 24 meses [Simulado] para Pronóstico y Prototipo; siempre después de seed_demo
+python scripts/seed_modulos.py   # (opcional) proveedores, inventario con alertas, clientes, promociones y campañas; después de seed_demo
 streamlit run app.py
 ```
 
@@ -53,6 +59,11 @@ Se abre en el navegador en `http://localhost:8501`. Para usarlo desde el celular
 | **Pronóstico de demanda** | admin, gerencia | Pronóstico mensual por línea, con y sin ajuste por mercado informal, y su error (MAPE) en un backtest. Datos **[Simulado]**. |
 | **Prototipo de escenario** | admin, gerencia | Controles de tipo de cambio paralelo y presión informal que mueven 5 indicadores frente a metas **[Supuesto]**. Necesita `seed_solucion.py`. |
 | **Entregables escritos** | admin, gerencia | Los 4 textos del caso: problemas prioritarios, síntesis ejecutiva, ficha de propuesta y recomendación ejecutiva. |
+| **Inventario y compras** | admin, encargado | Proveedores, stock con punto de reorden y alertas, órdenes de compra (borrador → aprobada → recibida) con prorrateo de flete/arancel. |
+| **Clientes y segmentación** | admin, gerencia | Alta de clientes y tabla de segmentos RFM (Recencia, Frecuencia, Monto) con recálculo manual. |
+| **Recomendaciones** | admin, encargado, gerencia | Top-3 de venta cruzada por producto (reglas de asociación o respaldo por atributos), registro de aceptación y tasa de conversión. |
+| **Marketing y promociones** | admin, gerencia | Reglas de descuento (porcentaje, monto fijo, combo), campañas con cupón/UTM y su ROAS, y un simulador de carrito. |
+| **Contabilidad** | admin, gerencia | Libro diario y balance de comprobación generados automáticamente por compras y descuentos. |
 
 ### Reglas de inventario
 
@@ -63,6 +74,15 @@ Se abre en el navegador en `http://localhost:8501`. Para usarlo desde el celular
 - La tolerancia se ajusta en `src/config.py` (`TOLERANCIA_DIFERENCIA`, por defecto 0).
 
 Ejemplo: apertura 50, ventas 12 → esperado 38; conteo 36 → diferencia −2 → **"Faltan 2 pares de MAN-DEP-001 en Tienda Prado (esperado 38, contado 36)"**.
+
+### Compras, recomendación, RFM y promociones
+
+- **Reorden automático.** Cuando el stock administrativo baja al punto de reorden (`compras.evaluar_alerta_stock`), se crea una alerta y, si el producto tiene proveedor predeterminado, una orden de compra en borrador por el doble del punto de reorden.
+- **Costo de reposición (*landed cost*).** Al recibir una orden (`compras.recibir_orden_compra`) el flete y el arancel se prorratean entre las líneas según su peso en el subtotal, se actualiza `Producto.costo_bs` y se registra el asiento Debe Inventario / Haber Cuentas por pagar.
+- **Recomendación.** `recomendacion.recomendar` agrupa las ventas en "cestas" (fecha, tienda, cliente) y aplica FP-Growth/Apriori; si un producto no tiene al menos `MINIMO_VENTAS_ASOCIACION` cestas o ninguna regla lo cubre, recomienda por atributos (misma categoría y, si alcanza, mismo color), ordenado por popularidad.
+- **RFM.** `rfm.calcular_rfm` puntúa Recencia, Frecuencia y Monto en una escala 1–5 por quintiles y clasifica el segmento: Nuevos (una compra reciente), VIP (R, F y M altos), En riesgo (compraba seguido, ya no), Inactivos (ni uno ni lo otro) o Frecuentes.
+- **Promociones.** `promociones.evaluar_carrito` aplica, sobre las reglas vigentes en la fecha, descuentos por porcentaje, monto fijo (con cantidad mínima) o combo (regala las unidades más baratas del grupo). Un cupón de campaña habilita además sus reglas exclusivas.
+- **Campañas.** Cada conversión con cupón genera su enlace UTM y, si hubo descuento, el asiento Debe Descuentos sobre ventas / Haber Caja y bancos; el ROAS es el monto generado sobre el presupuesto.
 
 ### Limpieza del Excel
 
@@ -97,16 +117,22 @@ Antes: `python scripts/seed_demo.py`, `python scripts/seed_solucion.py` y `strea
 ```
 app.py                 Inicio, login y navegación por rol
 pages/                 Apertura, Ventas, Cierre y conteo, Historial, Tablero, Catálogo, Usuarios,
-                       Pronóstico de demanda, Prototipo de escenario, Entregables escritos
+                       Pronóstico de demanda, Prototipo de escenario, Entregables escritos,
+                       Inventario y compras, Clientes y segmentación, Recomendaciones,
+                       Marketing y promociones, Contabilidad
 src/config.py          Rutas, constantes, permisos y tolerancia
 src/db.py, models.py   SQLite + SQLAlchemy
 src/auth.py            Login, roles y bcrypt
 src/services/          inventario (reglas), vision (YOLO-World), etl (Excel), diccionario (diccionario de datos),
-                       reportes (Excel de salida: cierres y tabla depurada), pronostico
+                       reportes (Excel de salida: cierres y tabla depurada), pronostico,
+                       compras (proveedores, reorden, órdenes de compra), recomendacion (FP-Growth/Apriori),
+                       rfm (segmentación), promociones (carrito y campañas), contabilidad (libro diario)
 src/ui/                estilos (CSS y tarjetas KPI), graficos (Plotly), comunes (selectores)
 scripts/               init_db.py, seed_demo.py, seed_solucion.py (datos [Simulado]),
+                       seed_modulos.py (compras, clientes, promociones y campañas),
                        generar_docx_solucion.py (Word de la solución), capturar_pantallas.py
-tests/                 pytest: inventario, ETL, diccionario y tabla depurada, conteo por foto y pronóstico
+tests/                 pytest: inventario, ETL, diccionario y tabla depurada, conteo por foto, pronóstico,
+                       compras, recomendación, RFM, promociones y contabilidad
 data/                  raw/ (Excel), fotos/ (evidencia), modelos/ (pesos YOLO), manaco.db
 ```
 

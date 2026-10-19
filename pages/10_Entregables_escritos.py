@@ -155,8 +155,8 @@ with tab4:
             "vuelven. Son los defectos que más dañan la marca.\n"
             "- **Entregas: no hay datos.** El sistema no registra fechas de despacho ni de entrega, así que no se "
             "puede medir cumplimiento ni quiebres de stock por demora.\n"
-            "- **Ventas [Simulado]:** 30 días de demo en 3 tiendas. Alcanzan para el control diario, no para ver "
-            "tendencias.\n"
+            "- **Ventas [Simulado]:** 90 días de demo en 3 tiendas. Alcanzan para el control diario, no para ver "
+            "tendencias de largo plazo.\n"
             "- **Margen de catálogo [Supuesto, precios de la demo]:** cerca del 45% en las tres líneas, pero por "
             "par el Cuero deja unos 239 Bs, frente a unos 155 Bs de Deportivo y de Caucho y cuero."
         )

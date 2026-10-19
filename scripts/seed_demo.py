@@ -1,4 +1,4 @@
-"""Carga datos de demostración: 3 tiendas, 12 productos y 30 días de operación.
+"""Carga datos de demostración: 3 tiendas, 16 productos y 90 días (3 meses) de operación.
 
 Reemplaza tiendas, productos, aperturas, ventas y cierres existentes.
 Uso: ``python scripts/seed_demo.py``
@@ -21,11 +21,12 @@ from src.auth import crear_usuario  # noqa: E402
 from src.config import CATEGORIAS_SA6, ESTADO_CORRECTO, ROL_ENCARGADO, ROL_GERENCIA  # noqa: E402
 from src.db import crear_tablas, obtener_sesion  # noqa: E402
 from src.models import (  # noqa: E402
-    AnulacionCierre, Apertura, Cierre, FactCalidad, FactProduccion, Producto, Tienda, Usuario, Venta,
+    AlertaStock, AnulacionCierre, Apertura, Cierre, ConversionCampana, DetalleOrdenCompra, FactCalidad,
+    FactProduccion, Inventario, OrdenCompra, Producto, RecomendacionLog, Tienda, Usuario, Venta,
 )
 from src.services import inventario as inv  # noqa: E402
 
-DIAS = 30
+DIAS = 90
 SEMILLA = 2026
 
 TIENDAS = [
@@ -48,6 +49,10 @@ PRODUCTOS = [
     ("MAN-CUE-002", "Zapato Oxford Elegance", "Cuero", "40", "Café", 579, 320),
     ("MAN-CUE-003", "Ballerina Cuero Dama", "Cuero", "37", "Rojo", 399, 210),
     ("MAN-CUE-004", "Botín Chelsea Cuero", "Cuero", "39", "Negro", 619, 345),
+    ("MAN-MED-001", "Media Deportiva Running", "Medias", "35-38", "Negro", 39, 18),
+    ("MAN-MED-002", "Media Deportiva Running", "Medias", "39-42", "Blanco", 39, 18),
+    ("MAN-MED-003", "Media Casual Algodón", "Medias", "35-38", "Gris", 29, 12),
+    ("MAN-MED-004", "Media Casual Algodón", "Medias", "39-42", "Café", 29, 12),
 ]
 
 OBSERVACIONES_FALTANTE = ["Posible venta no registrada", "Par extraviado en vitrina", "Revisar cámara de seguridad"]
@@ -62,14 +67,19 @@ def _usuario_demo(sesion, usuario: str, nombre: str, rol: str) -> int:  # noqa: 
 
 
 def main() -> None:
-    """Genera la operación simulada de los últimos 30 días (hasta ayer)."""
+    """Genera la operación simulada de los últimos 90 días / 3 meses (hasta ayer)."""
     rnd = random.Random(SEMILLA)
     crear_tablas()
     hoy = date.today()
     inicio = hoy - timedelta(days=DIAS)
 
     with obtener_sesion() as s:
-        for modelo in (Venta, Cierre, Apertura, AnulacionCierre, FactCalidad, FactProduccion, Producto, Tienda):
+        # Las tablas de seed_modulos.py (inventario, alertas, órdenes, conversiones) referencian
+        # productos/tiendas/ventas: hay que limpiarlas primero para poder re-sembrar desde cero.
+        for modelo in (
+            ConversionCampana, RecomendacionLog, AlertaStock, DetalleOrdenCompra, OrdenCompra, Inventario,
+            Venta, Cierre, Apertura, AnulacionCierre, FactCalidad, FactProduccion, Producto, Tienda,
+        ):
             s.execute(delete(modelo))
         encargado_id = _usuario_demo(s, "encargado", "Encargado de Tienda", ROL_ENCARGADO)
         _usuario_demo(s, "gerencia", "Gerencia Comercial", ROL_GERENCIA)

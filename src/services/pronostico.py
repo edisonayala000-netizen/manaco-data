@@ -5,7 +5,7 @@ estacionalidad mensual, y un factor de ajuste por presión del mercado informal:
 ``demanda ajustada = demanda implícita × (1 − sensibilidad de la línea × presión informal)``.
 
 Este módulo no depende de Streamlit ni de la base de datos. No hay suficiente historial
-real de ventas (``Venta`` solo cubre los últimos 30 días), así que ``generar_historial``
+real de ventas (``Venta`` solo cubre los últimos 90 días), así que ``generar_historial``
 simula 24 meses de demanda mensual por línea — igual que el prototipo publicado en la
 sección 4 del documento. Todo lo que produce esa función está etiquetado [Simulado]; la
 sensibilidad de cada línea al mercado informal está etiquetada [Supuesto].
@@ -28,10 +28,11 @@ SENSIBILIDAD_INFORMAL: dict[str, float] = {
     "Deportivo": 0.35,
     "Caucho y cuero": 0.20,
     "Cuero": 0.10,
+    "Medias": 0.30,
 }
 
 #: Nivel base de demanda mensual (pares) por línea. [Supuesto]
-_NIVEL_BASE: dict[str, float] = {"Deportivo": 1800, "Caucho y cuero": 1200, "Cuero": 700}
+_NIVEL_BASE: dict[str, float] = {"Deportivo": 1800, "Caucho y cuero": 1200, "Cuero": 700, "Medias": 2500}
 #: Alias público: ``seed_solucion.py`` calibra la producción simulada con este nivel.
 NIVEL_BASE = _NIVEL_BASE
 #: Meses de pico estacional: inicio de clases (feb-mar) y fiestas de fin de año.
